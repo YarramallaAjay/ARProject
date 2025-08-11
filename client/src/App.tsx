@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
 import './App.css'
 
 import { Card3D } from './Card3D'
@@ -122,28 +123,41 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 10, padding: '6px 10px', background: 'rgba(2,6,23,0.65)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }}>
-        <span style={{ color: '#cbd5e1', fontSize: 12 }}>WebGL: {webgl ? 'available' : 'not available'}</span>
-      </div>
-
-      <div className="scene" style={{ outline: '1px dashed #334155' }}>
+      <div className="scene">
         {webgl && (
-          <Canvas style={{ width: '100%', height: '100%' }}           dpr={[1, 2]}
-            camera={{ fov: 50, position: [0.7, 0.55, 3] }}
-            onCreated={({ gl }) => { console.log('Canvas mounted'); gl.setClearColor('#0a0f1e'); }}
+          <Canvas
+            dpr={[1, 2]}
+            shadows
+            camera={{ fov: 45, position: [0.1, 0.25, 2.2] }}
+            onCreated={({ gl }) => { console.log('Canvas mounted'); gl.setClearColor('#0a0f1e'); gl.shadowMap.enabled = true; gl.shadowMap.type = THREE.PCFSoftShadowMap as any; }}
             gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+            style={{ width: '100%', height: '100%' }}
           >
             <color attach="background" args={["#0a0f1e"]} />
             <fog attach="fog" args={[0x0b1022, 25, 120]} />
-            <ambientLight intensity={0.8} />
-            <hemisphereLight args={[0xbcd7ff, 0x0b0f1e, 0.8]} />
-            <directionalLight position={[2.5, 3, 4]} intensity={1.2} />
-            <directionalLight position={[-3.5, 1, -2.5]} intensity={0.6} color={'#88aaff'} />
+            <ambientLight intensity={0.45} />
+            {/* Key light (casts soft shadow) */}
+            <directionalLight
+              position={[2.2, 2.5, 2.0]}
+              intensity={1.35}
+              color={'#ffffff'}
+              castShadow
+              shadow-mapSize-width={1024}
+              shadow-mapSize-height={1024}
+              shadow-camera-near={0.5}
+              shadow-camera-far={10}
+              shadow-camera-left={-2}
+              shadow-camera-right={2}
+              shadow-camera-top={2}
+              shadow-camera-bottom={-2}
+            />
+            {/* Fill and rim */}
+            <hemisphereLight args={[0xbcd7ff, 0x0b0f1e, 0.55]} />
+            <directionalLight position={[-2.5, 1.5, -2.0]} intensity={0.5} color={'#88aaff'} />
 
-            <axesHelper args={[5]} />
             <Card3D />
 
-            <OrbitControls enablePan={false} minDistance={0.8} maxDistance={10} />
+            <OrbitControls enablePan={false} minDistance={1.0} maxDistance={6} />
           </Canvas>
         )}
       </div>
