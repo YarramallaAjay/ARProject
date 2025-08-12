@@ -8,6 +8,8 @@ import { Card3D } from './Card3D'
 import { useApp, type ThemeKey } from './store'
 import { formatCardNumber, luhnCheck } from './utils'
 import { listPresets, savePreset, type Preset } from './api'
+import ScanPanel from './ScanPanel'
+import ARScene from './ARScene'
 
 function useWebGLSupport() {
   return useMemo(() => {
@@ -29,6 +31,7 @@ export default function App() {
   const number = useApp((s) => s.number)
   const setName = useApp((s) => s.setName)
   const setNumber = useApp((s) => s.setNumber)
+  const [arMode, setArMode] = useState(false)
 
   const [presets, setPresets] = useState<Preset[]>([])
   const [saving, setSaving] = useState(false)
@@ -82,6 +85,10 @@ export default function App() {
 
   const isValid = luhnCheck(number)
 
+  if (arMode) {
+    return <ARScene />
+  }
+
   return (
     <div className="app-container">
       <div className="toolbar">
@@ -106,9 +113,10 @@ export default function App() {
         <button onClick={triggerFlip}>Flip</button>
         <button onClick={onShot}>Screenshot</button>
         <button onClick={onSavePreset} disabled={saving || !isValid}>{saving ? 'Saving…' : 'Save preset'}</button>
+        <button onClick={() => setArMode(true)} style={{ background: '#7c3aed' }}>AR Mode</button>
       </div>
 
-      <div className="presets">
+      {/* <div className="presets">
         <div className="title">Presets {loading && <span className="muted">(loading…)</span>}</div>
         {apiError && <div className="muted" style={{ color: '#ef4444' }}>API: {apiError}</div>}
         <div className="list">
@@ -121,7 +129,7 @@ export default function App() {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       <div className="scene">
         {webgl && (
@@ -161,6 +169,8 @@ export default function App() {
           </Canvas>
         )}
       </div>
+
+      <ScanPanel />
     </div>
   )
 }

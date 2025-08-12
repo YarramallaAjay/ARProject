@@ -3,6 +3,8 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useApp, type ThemeKey } from './store'
 import { Text } from '@react-three/drei'
+import { useLoader } from '@react-three/fiber'
+import { TextureLoader } from 'three'
 
 export function Card3D() {
   const groupRef = useRef<THREE.Group>(null)
@@ -148,6 +150,12 @@ export function Card3D() {
   const frontZ = thickness / 2 + 0.0018
   const backZ = -thickness / 2 - 0.005
 
+  // Optional textures from store
+  const frontTexUrl = useApp((s) => s.frontTextureUrl)
+  const backTexUrl = useApp((s) => s.backTextureUrl)
+  const frontTexture = frontTexUrl ? useLoader(TextureLoader, frontTexUrl) : undefined
+  const backTexture = backTexUrl ? useLoader(TextureLoader, backTexUrl) : undefined
+
   return (
     <group ref={groupRef}>
       <group ref={cardRef} rotation={[-0.1, 0.14, 0]} scale={2.2}>
@@ -155,6 +163,14 @@ export function Card3D() {
         <mesh geometry={geometry} castShadow>
           <meshStandardMaterial color={themeProps.color} metalness={themeProps.metalness} roughness={themeProps.roughness} />
         </mesh>
+
+        {/* Optional front texture overlay */}
+        {frontTexture && (
+          <mesh position={[0, 0, frontZ + 0.0009]} rotation={[0, 0, 0]}>
+            <planeGeometry args={[cardDims.width * 0.995, cardDims.height * 0.995]} />
+            <meshBasicMaterial map={frontTexture} transparent opacity={0.85} side={THREE.FrontSide} />
+          </mesh>
+        )}
 
         {/* FRONT DETAILS (colors theme-aware; positions preserved) */}
         <group ref={frontDetailsRef}>
@@ -372,6 +388,14 @@ export function Card3D() {
             This card remains the property of the issuer. Unauthorized use is prohibited.
           </Text>
         </group>
+
+        {/* Optional back texture overlay */}
+        {backTexture && (
+          <mesh position={[0, 0, backZ - 0.0009]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[cardDims.width * 0.995, cardDims.height * 0.995]} />
+            <meshBasicMaterial map={backTexture} transparent opacity={0.85} side={THREE.FrontSide} />
+          </mesh>
+        )}
 
         {/* subtle front rim glow */}
         <mesh position={[0, 0, frontZ + 0.0023]}>
